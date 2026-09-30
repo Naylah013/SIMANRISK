@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Registrasi;
 use App\Models\UnitKerja;
+use App\Models\JenisRisiko;
+use App\Models\KategoriRisiko;
 use App\Models\Mitigasi;
 use App\Models\Evaluasi;
 use App\Models\Penilaian;
@@ -13,7 +16,9 @@ class PenilaianController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
+        $jenisRisiko = JenisRisiko::all();
+        $kategoriRisiko = KategoriRisiko::all();
 
         // Status role
         $isAuditor = str_contains(strtolower($user->role), 'auditor');
@@ -54,6 +59,14 @@ class PenilaianController extends Controller
             $query->where('unit_kerja_id', $request->unit_kerja_id);
         }
 
+        if ($request->jenis_risiko_id) {
+            $query->where('jenis_risiko_id', $request->jenis_risiko_id);
+        }
+
+        if ($request->kategori_risiko_id) {
+            $query->where('kategori_risiko_id', $request->kategori_risiko_id);
+        }
+
         if ($request->tahun) {
             $query->whereHas('mitigasis.evaluasis', function ($q) use ($request) {
                 $q->where('tahun', $request->tahun);
@@ -85,9 +98,13 @@ class PenilaianController extends Controller
         return view('pages.penilaian', [
             'registrasis' => $registrasis,
             'unitKerja' => $unitKerja,
+            'jenisRisiko' => $jenisRisiko,
+            'kategoriRisiko' => $kategoriRisiko,
             'tahunList' => $tahunList,
             'unitDipilih' => $request->unit_kerja_id,
             'tahunDipilih' => $request->tahun,
+            'jenisRisikoDipilih' => $request->jenis_risiko_id,
+            'kategoriRisikoDipilih' => $request->kategori_risiko_id,
         ]);
     }
     public function store(Request $request)
@@ -97,7 +114,7 @@ class PenilaianController extends Controller
             'uraian' => 'nullable|string'
         ]);
 
-        $user = auth()->user();
+        $user = Auth::user();
         $isAuditor = str_contains(strtolower($user->role), 'auditor');
         $isP4M = str_contains(strtolower($user->role), 'p4m');
 
@@ -133,7 +150,7 @@ class PenilaianController extends Controller
             'uraian' => 'nullable|string'
         ]);
 
-        $user = auth()->user();
+        $user = Auth::user();
         $isAuditor = str_contains(strtolower($user->role), 'auditor');
         $isP4M = str_contains(strtolower($user->role), 'p4m');
 
@@ -161,7 +178,7 @@ class PenilaianController extends Controller
 
     public function destroy($id)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $isAuditor = str_contains(strtolower($user->role), 'auditor');
         $isP4M = str_contains(strtolower($user->role), 'p4m');
 
